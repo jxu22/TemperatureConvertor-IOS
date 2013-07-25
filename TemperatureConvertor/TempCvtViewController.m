@@ -15,6 +15,7 @@
 @property(nonatomic) BOOL flag;
 
 - (void) convert;
+- (BOOL) checkInput:(NSString*) str type:(BOOL) flag;
 @end
 
 @implementation TempCvtViewController
@@ -51,19 +52,57 @@
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField {
     if(textField == self.fahTextField)
     {
-        NSLog(@"here");
+        self.flag = NO;
     }
     
     else
     {
-        
+        self.flag = YES;
     }
+    return YES;
+}
+
+- (BOOL) checkInput:(NSString*) str type:(BOOL) flag
+{
+    NSString * regex = @"-?([0-9]|[1-9][0-9]*)(.[0-9]+)?";       // regex for float number
+    
+    if(self.flag == NO)
+    {
+        str = self.fahTextField.text;
+    }
+    else
+    {
+        str = self.celTextField.text;
+    }
+    
+    NSPredicate *inputTest = [NSPredicate predicateWithFormat:@"SELF MATCHES %@", regex];
+    if(![inputTest evaluateWithObject:str])             // check number valid
+        return NO;
+    
+    float chk = [str floatValue];
+    if((chk <= -459.67 && flag == NO) || (flag == YES && chk <= -273.15))                                      // check the absolute zero
+    {
+        return NO;
+    }
+
+    
     return YES;
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    [self.view endEditing:YES];
+    
+    BOOL flag;
+    if(self.flag == NO)
+    {
+        flag = [self checkInput:self.fahTextField.text type: NO];
+    }
+    else
+    {
+        flag = [self checkInput:self.celTextField.text type:YES];
+    }
+    if(flag == YES)
+        [self.view endEditing:YES];
     // call back works
 }
 
@@ -79,16 +118,17 @@
 {
     if(self.flag == NO)
     {
+        
         float origin = [self.fahTextField.text floatValue];
         float ans = (origin - 32) * 5 / 9;
-        self.celTextField.text = [NSString stringWithFormat: @"%f" , ans];
+        self.celTextField.text = [NSString stringWithFormat: @"%0.2f" , ans];
         
     }
     else
     {
         float origin = [self.celTextField.text floatValue];
         float ans = origin * 9 / 5 + 32;
-        self.fahTextField.text = [NSString stringWithFormat: @"%f" , ans];
+        self.fahTextField.text = [NSString stringWithFormat: @"%0.2f" , ans];
     }
 }
 
